@@ -1,0 +1,1 @@
+python3 SupplyPipelineDevice-dev.py 'JUL 2022' bloq_device.xlsx colocado_biotech.xlsx DRP_device.xlsx forecast_device.xlsx esto_lote_device.xlsx JDA_device.xlsx planning_device.xlsx prod_trans_device.xlsx vendas_device.xlsx

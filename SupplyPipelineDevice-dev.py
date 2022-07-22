@@ -11,6 +11,8 @@ import numpy as np
 import re
 from ReadSheetsDevice import excelIdentifier
 import traceback
+from SupplyTransDeviceAgv import calculateTransferAGV
+from GenerateDict import generateDict
 
 month = sys.argv[1]
 sheets = sys.argv[2:]
@@ -112,6 +114,8 @@ class Medicamentos:
 
         df_provisioning = None
         
+        storageLocationDict = generateDict(self.df_vendas, 'Storage location')
+
         for f in material:
 
             self.d[f] = {}
@@ -173,7 +177,10 @@ class Medicamentos:
                     limit = batchExpDate[0].date() - timedelta(days=30*self.params_dict.get(f, 12))
                     self.d[f]['Batch'][str(self.df_estoque_all.loc[i, 'Batch'])]['Limit sales date'] = (limit, limit.strftime('%Y-%m-%d'))[1] # Tuple Datetime
 
-
+                    try:
+                        self.d[f]['Batch'][str(self.df_estoque_all.loc[i, 'Batch'])]['Storage location'] = storageLocationDict[material].get(str(self.df_estoque_all.loc[i, 'Batch'])) if storageLocationDict[material] != None else "-"     
+                    except:
+                        ...
 
             #Produtos (Linhas roxas)
             for i in range(len(self.df_produtos)):
@@ -259,8 +266,7 @@ class Medicamentos:
                 df[code]['Material No'] = [code] * (limit - beginning)
    
                 df[code]['Meses'] = indexes[beginning:limit]
-                # print('MESESSS',df[code]['Meses'].values)
-
+                # [d.strftime("%b %Y").upper() for d in indexes[beginning:limit]]
                 if self.df_forecast.loc[i, 'Key Figure'] == 'AGV Forecast':
                     df[code]['AGV Forecast'] = forecast[list(df[code]['Meses'])].values
                     # df[code]['Forecast'] = forecast[list(df[code]['Meses'])].values
@@ -424,14 +430,27 @@ class Medicamentos:
                                 pass
             
 
-
+            
             if type(df_provisioning) == type(None):
-                df_provisioning = df[key]
+                try:
+                    listaMeses = [d.strftime("%b %Y").upper() for d in list(df[key]["Meses"])]
+                    df[key]["Meses"] = listaMeses
+                    df_provisioning = df[key]
+                except:
+                    ...
+                
             else:
-                df_provisioning = df_provisioning.append(df[key], ignore_index=True)
+                try:
+                    listaMeses = [d.strftime("%b %Y").upper() for d in list(df[key]["Meses"])]
+                    df[key]["Meses"] = listaMeses
+                    df_provisioning = df_provisioning.append(df[key], ignore_index=True)
+                except:
+                    ...
+                
 
             df_provisioning.to_excel('planlha_supply2.xlsx')
 
+        calculateTransferAGV(self.d, df)
 
         df_table = None
         for key in list(self.d.keys()):
