@@ -178,7 +178,7 @@ class Medicamentos:
                     self.d[f]['Batch'][str(self.df_estoque_all.loc[i, 'Batch'])]['Limit sales date'] = (limit, limit.strftime('%Y-%m-%d'))[1] # Tuple Datetime
 
                     try:
-                        self.d[f]['Batch'][str(self.df_estoque_all.loc[i, 'Batch'])]['Storage location'] = storageLocationDict[material].get(str(self.df_estoque_all.loc[i, 'Batch'])) if storageLocationDict.get(material) != None else "-"     
+                        self.d[f]['Batch'][str(self.df_estoque_all.loc[i, 'Batch'])]['Storage location'] = storageLocationDict[f].get(str(self.df_estoque_all.loc[i, 'Batch'])) if storageLocationDict.get(f) != None else "-"     
                     except:
                         traceback.print_exc()
                         ...
