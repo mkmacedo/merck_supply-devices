@@ -3,7 +3,7 @@ import pandas as pd
 import traceback
 
 
-def calculateTransfer(dictMateriais, df):
+def calculateTransferDiremadi(dictMateriais, df):
     dfTransfer = pd.DataFrame()
     for material in list(dictMateriais.keys()):
         #print(material)
@@ -12,7 +12,7 @@ def calculateTransfer(dictMateriais, df):
             #print(key)
             if key == material:
                 try:
-                    forecast = list(df[key]['Forecast'])
+                    forecast = list(df[key]['DIREMADI Forecast'])
                     mes =list(df[key]['Meses'])[0]
                     forecastReplica = pd.Series()
                     
@@ -55,11 +55,11 @@ def calculateTransfer(dictMateriais, df):
                             x = 150 * fc / 100 
                             complement = x - totalAmount
                             for key in list(batchBR01Dict.keys()):
-                                if batchBR01Dict[key] <= complement:
+                                if batchBR01Dict[key] <= complement and batchStorageLocationDict[key] in [1001,'1001']:
                                     if complement > 0 and batchExpirationDict[key] > datetime.strptime(mes.lower(),"%b %Y"):
                                         batchTransfer[key] = batchBR01Dict[key]
                                         complement -= batchBR01Dict
-                                elif batchExpirationDict[key] > datetime.strptime(mes.lower(),"%b %Y"):
+                                elif batchExpirationDict[key] > datetime.strptime(mes.lower(),"%b %Y") and batchStorageLocationDict[key] in [1001,'1001']:
                                     batchTransfer[key] = complement
                                     complement = 0
                             print(batchTransfer)
@@ -77,9 +77,9 @@ def calculateTransfer(dictMateriais, df):
                             for lote in list(batchTransfer.keys()):
                                 transferDict['Lote'].append(lote)
                                 transferDict['Planta Atual'].append(batchPlantDict.get(lote)) 
-                                transferDict['Planta'].append("BR08")                         
+                                transferDict['Planta'].append("BR01")                         
                                 transferDict["Qtd"].append(batchTransfer.get(lote))
-                                transferDict['Storage location'].apped(batchStorageLocationDict.get(lote))
+                                transferDict['Storage location (Transferência)'].append('1005')
 
                             batchTransferDf = pd.DataFrame(data = transferDict)
                             dfTransfer = dfTransfer.append(batchTransferDf)
@@ -92,4 +92,4 @@ def calculateTransfer(dictMateriais, df):
                 except:
                     ...
     #print(dfTransfer)
-    dfTransfer.to_excel("planilha_transferencia.xlsx")
+    dfTransfer.to_excel("planilha_transferencia_Diremadi.xlsx")

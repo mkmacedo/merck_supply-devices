@@ -115,6 +115,8 @@ class Medicamentos:
         df_provisioning = None
         
         storageLocationDict = generateDict(self.df_vendas, 'Storage location')
+        for c in list(storageLocationDict.keys()):
+            print(storageLocationDict[c])
 
         for f in material:
 
@@ -178,8 +180,9 @@ class Medicamentos:
                     self.d[f]['Batch'][str(self.df_estoque_all.loc[i, 'Batch'])]['Limit sales date'] = (limit, limit.strftime('%Y-%m-%d'))[1] # Tuple Datetime
 
                     try:
-                        self.d[f]['Batch'][str(self.df_estoque_all.loc[i, 'Batch'])]['Storage location'] = storageLocationDict[material].get(str(self.df_estoque_all.loc[i, 'Batch'])) if storageLocationDict[material] != None else "-"     
+                        self.d[f]['Batch'][str(self.df_estoque_all.loc[i, 'Batch'])]['Storage location'] = storageLocationDict[material].get(str(self.df_estoque_all.loc[i, 'Batch'])) if storageLocationDict.get(material) != None else "-"     
                     except:
+                        traceback.print_exc()
                         ...
 
             #Produtos (Linhas roxas)
@@ -222,6 +225,10 @@ class Medicamentos:
                         limit = batchAbaProdutosExpDate[0].date() - timedelta(days=30*self.params_dict.get(f, 12))
                         self.d[f]['batchAbaProdutos'][str(self.df_produtos.loc[i, 'Batch'])]['Limit sales date'] = (limit, limit.strftime('%Y-%m-%d'))[1] #Tuple Datetime
 
+                        try:
+                            self.d[f]['batchAbaProdutos'][str(self.df_produtos.loc[i, 'Batch'])]['Storage location'] =  "-"     
+                        except:
+                            ...
 
         df = {} # Chave ==>> Código do Material; Valor ==>> DataFrame
         codes = list(self.d.keys())
@@ -465,6 +472,7 @@ class Medicamentos:
             monthsList = []
             limitSalesDateList = []
             blockedList = []
+            storageLocationList = []
 
 
             for batchKey in list(self.d[key]['Batch']):
@@ -495,6 +503,9 @@ class Medicamentos:
                 blocked = self.d[key]['Batch'][batchKey].get('Blocked')
                 blockedList.append(blocked)
 
+                storageLocation = self.d[key]['Batch'][batchKey].get('Storage location')
+                storageLocationList.append(storageLocation)
+
             if self.d[key].get('batchAbaProdutos') != None:
                 for batchKey in list(self.d[key]['batchAbaProdutos']):
 
@@ -523,6 +534,9 @@ class Medicamentos:
 
                     blocked = self.d[key]['batchAbaProdutos'][batchKey].get('Blocked')
                     blockedList.append(blocked)
+
+                    storageLocation = self.d[key]['batchAbaProdutos'][batchKey].get('Storage location')
+                    storageLocationList.append(storageLocation)
 
             lgth = len(batchList)
             productList = [key]*lgth
@@ -553,7 +567,8 @@ class Medicamentos:
                     'Plant': plantList,
                     'BSK': batchStatusKeyList,
                     'Blocked': blockedList,
-                    'Destruição': destruicaoList 
+                    'Storage Location': storageLocationList,
+                    'Destruição': destruicaoList
                     }
 
             if type(df_table) == type(None):
