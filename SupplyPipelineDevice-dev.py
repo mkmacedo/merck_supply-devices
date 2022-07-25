@@ -9,8 +9,12 @@ import numpy as np
 import re
 from ReadSheetsDevice import excelIdentifier
 import traceback
+from SupplyWriteOffDiremadi import calculateWriteOffDiremadi
+from SupplyWriteOffAGV import calculateWriteOffAGV
 from SupplyTransferDeviceAgv import calculateTransferAGV
+from SupplyTransferDeviceDiremadi import calculateTransferDiremadi
 from GenerateDict import generateDict
+
 
 month = sys.argv[1]
 sheets = sys.argv[2:]
@@ -177,6 +181,8 @@ class Medicamentos:
                     limit = batchExpDate[0].date() - timedelta(days=30*self.params_dict.get(f, 12))
                     self.d[f]['Batch'][str(self.df_estoque_all.loc[i, 'Batch'])]['Limit sales date'] = (limit, limit.strftime('%Y-%m-%d'))[1] # Tuple Datetime
 
+                    self.d[f]['Batch'][str(self.df_estoque_all.loc[i, 'Batch'])]['Write off'] = self.d[f]['Batch'][str(self.df_estoque_all.loc[i, 'Batch'])]['Stock Amount']
+                    
                     try:
                         self.d[f]['Batch'][str(self.df_estoque_all.loc[i, 'Batch'])]['Storage location'] = storageLocationDict[f].get(str(self.df_estoque_all.loc[i, 'Batch'])) if storageLocationDict.get(f) != None else "-"     
                     except:
@@ -222,7 +228,9 @@ class Medicamentos:
 
                         limit = batchAbaProdutosExpDate[0].date() - timedelta(days=30*self.params_dict.get(f, 12))
                         self.d[f]['batchAbaProdutos'][str(self.df_produtos.loc[i, 'Batch'])]['Limit sales date'] = (limit, limit.strftime('%Y-%m-%d'))[1] #Tuple Datetime
-
+                        
+                        self.d[f]['batchAbaProdutos'][str(self.df_produtos.loc[i, 'Batch'])]['Write off'] = "-"
+                        
                         try:
                             self.d[f]['batchAbaProdutos'][str(self.df_produtos.loc[i, 'Batch'])]['Storage location'] =  "-"     
                         except:
@@ -453,9 +461,13 @@ class Medicamentos:
                     ...
                 
 
-            df_provisioning.to_excel('planlha_supply2.xlsx')
+            df_provisioning.to_excel('planilha_supply2.xlsx')
+
+        calculateWriteOffAGV(self.d, df)
+        calculateWriteOffDiremadi(self.d, df)
 
         calculateTransferAGV(self.d, df)
+        calculateTransferDiremadi(self.d, df)
 
         df_table = None
         for key in list(self.d.keys()):
@@ -471,6 +483,7 @@ class Medicamentos:
             limitSalesDateList = []
             blockedList = []
             storageLocationList = []
+            writeOffList = []
 
 
             for batchKey in list(self.d[key]['Batch']):
@@ -504,6 +517,9 @@ class Medicamentos:
                 storageLocation = self.d[key]['Batch'][batchKey].get('Storage location')
                 storageLocationList.append(storageLocation)
 
+                writeOffs = self.d[key]['Batch'][batchKey].get('Write off')
+                writeOffList.append(writeOffs)
+
             if self.d[key].get('batchAbaProdutos') != None:
                 for batchKey in list(self.d[key]['batchAbaProdutos']):
 
@@ -536,6 +552,9 @@ class Medicamentos:
                     storageLocation = self.d[key]['batchAbaProdutos'][batchKey].get('Storage location')
                     storageLocationList.append(storageLocation)
 
+                    writeOffs = self.d[key]['batchAbaProdutos'][batchKey].get('Write off')
+                    writeOffList.append(writeOffs)
+
             lgth = len(batchList)
             productList = [key]*lgth
             descriptionList = [self.d[key].get('Description')]*lgth
@@ -562,6 +581,7 @@ class Medicamentos:
                     'Days': daysList,
                     'Month': monthsList,
                     'Limit Sales Date': limitSalesDateList,
+                    'Write off': writeOffList,
                     'Plant': plantList,
                     'BSK': batchStatusKeyList,
                     'Blocked': blockedList,
