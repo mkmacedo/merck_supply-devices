@@ -1,8 +1,6 @@
 from cmath import nan
 from datetime import date, datetime, timedelta
 #from icecream import ic
-import math
-from operator import index
 #from tracemalloc import start
 import pandas as pd
 import Regexes
@@ -11,7 +9,7 @@ import numpy as np
 import re
 from ReadSheetsDevice import excelIdentifier
 import traceback
-from SupplyTransDeviceAgv import calculateTransferAGV
+from SupplyTransferDeviceAgv import calculateTransferAGV
 from GenerateDict import generateDict
 
 month = sys.argv[1]

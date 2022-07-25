@@ -1,8 +1,6 @@
 from cmath import nan
 from datetime import date, datetime, timedelta
 #from icecream import ic
-import math
-from operator import index
 #from tracemalloc import start
 import pandas as pd
 import Regexes
